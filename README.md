@@ -16,30 +16,38 @@ Role Variables
 ##### Default Variables
 #
 The folder path of your dotfiles
+
 `dotfiles_folder_path: "$HOME/dotfiles"`
 
 The git repository containing your dotfiles (`https://github.com/user/repo.git`)
+
 `dotfiles_git_repo: ""`
 
+
 The location of your .bashrc file
+
 `bashrc_path: "~/.bashrc"`
 
 Your alias for git
+
 `dotfiles_cmd_alias_name: "dotfiles"`
+
 Your commands would look like this
 ```
 dotfiles status
 dotfiles pull
 dotfiles add .bashrc
-dotfiles commit -m "added .bashrc"
+dotfiles commit -m "added ~/.bashrc"
 dotfiles push
 ```
 Note: If the `dotfiles_cmd_alias_name` variable is empty, then the role will set it to `dotfiles`
 
 The location of your git binary
+
 `git_binary_path: "usr/bin/git"`
 
 Your desired git work tree path (note: this is where your dotfiles will exist)
+
 `git_work_tree_path: "$HOME"`
 
 Dependencies
