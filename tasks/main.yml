@@ -1,0 +1,41 @@
+---
+## ------------------------------
+## Tasks for dotfiles
+## ------------------------------
+
+- name: "Checking If {{ dotfiles_folder_path }} Directory Exists"
+  stat:
+    path: "{{ dotfiles_folder_path }}"
+  register: dotfiles_directory
+
+- name: "Creating {{ dotfiles_folder_path }} Directory"
+  file:
+    path: "{{ dotfiles_folder_path }}"
+    state: "directory"
+  when: not dotfiles_directory.stat.exists
+
+- name: "Initializing an Empty Git Repository in {{ dotfiles_folder_path }}"
+  shell: |
+    cd {{ dotfiles_folder_path }}
+    git init --bare
+
+- name: "Setting status.showUntrackedFiles = no in the Local Git Config"
+  git_config:
+    name: "status.showUntrackedFiles"
+    repo: "{{ dotfiles_folder_path }}"
+    scope: "local"
+    value: "no"
+
+- name: "Running Command: git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} remote add origin {{ dotfiles_git_repo }}"
+  shell: |
+    git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} remote add origin {{ dotfiles_git_repo }}
+
+- name: "Prepending \"alias {{ dotfiles_cmd_alias_name | default('dotfiles') }}='{{ git_binary_path }} --git-dir=$HOME/dotfiles --work-tree={{ git_work_tree_path }}'\" to ~/.bashrc"
+  blockinfile:
+    path: "{{ bashrc_path }}"
+    insertbefore: "BOF"
+    block: "alias {{ dotfiles_cmd_alias_name | default('dotfiles') }}='{{ git_binary_path }} --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }}'"
+
+- name: "Running Command: git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} pull origin master"
+  shell: |
+    git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} pull origin master

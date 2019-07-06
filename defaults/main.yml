@@ -1,0 +1,11 @@
+---
+## ------------------------------
+# Defaults for dotfiles
+## ------------------------------
+
+dotfiles_folder_path: "$HOME/dotfiles"
+dotfiles_git_repo: ""
+bashrc_path: "~/.bashrc"
+dotfiles_cmd_alias_name: "dotfiles"
+git_binary_path: "usr/bin/git"
+git_work_tree_path: "$HOME"
