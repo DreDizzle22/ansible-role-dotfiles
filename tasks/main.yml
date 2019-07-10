@@ -26,16 +26,36 @@
     scope: "local"
     value: "no"
 
-- name: "Running Command: git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} remote add origin {{ dotfiles_git_repo }}"
+- name: "Running Command: git --git-dir={{ dotfiles_folder_path }} --work-tree={{ home_path }}/dotfiles_temp remote add origin {{ dotfiles_git_repo }}"
   shell: |
-    git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} remote add origin {{ dotfiles_git_repo }}
+    git --git-dir={{ dotfiles_folder_path }} --work-tree={{ home_path }}/dotfiles_temp remote add origin {{ dotfiles_git_repo }}
 
-- name: "Prepending \"alias {{ dotfiles_cmd_alias_name | default('dotfiles') }}='{{ git_binary_path }} --git-dir=$HOME/dotfiles --work-tree={{ git_work_tree_path }}'\" to ~/.bashrc"
+- name: "Creating \"~/dotfiles_temp\" Directory"
+  file:
+    path: "{{ home_path }}/dotfiles_temp"
+    state: "directory"
+
+- name: "Running Command: git --git-dir={{ dotfiles_folder_path }} --work-tree={{ home_path }}/dotfiles_temp pull origin master"
+  shell: |
+    git --git-dir={{ dotfiles_folder_path }} --work-tree={{ home_path }}/dotfiles_temp pull origin master
+
+- name: "Copying dotfiles in {{ home_path }}/dotfiles_temp to {{ git_work_tree_path }}"
+  copy:
+    src: "{{ home_path }}/dotfiles_temp/"
+    dest: "{{ git_work_tree_path }}"
+    force: "yes"
+
+- name: "Deleting \"{{ home_path }}/dotfiles_temp\" Directory"
+  file:
+    path: "{{ home_path }}/dotfiles_temp"
+    state: "absent"
+
+- name: "Prepending \"alias {{ dotfiles_cmd_alias_name | default('dotfiles') }}='{{ git_binary_path }} --git-dir={{ home_path }}/dotfiles --work-tree={{ git_work_tree_path }}'\" to ~/.bashrc"
   blockinfile:
     path: "{{ bashrc_path }}"
     insertbefore: "BOF"
     block: "alias {{ dotfiles_cmd_alias_name | default('dotfiles') }}='{{ git_binary_path }} --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }}'"
 
-- name: "Running Command: git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} pull origin master"
+- name: "Sourcing {{ file_to_source }} file"
   shell: |
-    git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} pull origin master
+    . {{ file_to_source }}
