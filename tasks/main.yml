@@ -3,19 +3,22 @@
 ## Tasks for dotfiles
 ## ------------------------------
 
-- name: "Checking If {{ dotfiles_folder_path }} Directory Exists"
+- name: "Checking If {{ dotfiles_git_repo_path }} Directory Exists"
   stat:
-    path: "{{ dotfiles_folder_path }}"
+    path: "{{ dotfiles_git_repo_path }}"
   register: dotfiles_directory
 
-- name: "Check if dotfiles directory does not exist" 
-  fail: msg="Please ensure {{ dotfiles_folder_path }} directory does not exist"
+- block:
+    - name: "Checking If {{ dotfiles_git_repo_path }} Directory Exists"
+      debug:
+        msg: "A dotfiles directory already exists. Run '{{ dotfiles_alias }} status' to confirm that dotfiles was configured correctly. Otherwise please remove the directory in order run this playbook."
+    - meta: end_play
   when: dotfiles_directory.stat.exists
 
-- name: "Clone {{ dotfiles_git_repo }} into {{ dotfiles_folder_path }}"
+- name: "Clone {{ dotfiles_git_repo_url }} into {{ dotfiles_git_repo_path }}"
   git:
-    repo: "{{ dotfiles_git_repo }}"
-    dest: "{{ dotfiles_folder_path }}"
+    repo: "{{ dotfiles_git_repo_url }}"
+    dest: "{{ dotfiles_git_repo_path }}"
     clone: yes
     force: yes
     recursive: no
@@ -25,20 +28,16 @@
 - name: "Setting status.showUntrackedFiles = no in the Local Git Config"
   git_config:
     name: "status.showUntrackedFiles"
-    repo: "{{ dotfiles_folder_path }}"
+    repo: "{{ dotfiles_git_repo_path }}"
     scope: "local"
     value: "no"
 
-- name: "Running Command: git --git-dir={{ dotfiles_folder_path }} --work-tree={{ git_work_tree_path }} pull origin master"
+- name: "Running Command: git --git-dir={{ dotfiles_git_repo_path }} --work-tree={{ dotfiles_home_path }} checkout -f"
   shell: |
-    git --git-dir="{{ dotfiles_folder_path }}" --work-tree="{{ git_work_tree_path }}" checkout
+    git --git-dir="{{ dotfiles_git_repo_path }}" --work-tree="{{ dotfiles_home_path }}" checkout -f
 
-- name: "Prepending \"alias {{ dotfiles_cmd_alias_name | default('dotfiles') }}='{{ git_binary_path }} --git-dir={{ home_path }}/dotfiles --work-tree={{ git_work_tree_path }}'\" to ~/.bashrc"
+- name: "Prepending \"alias {{ dotfiles_alias | default('dotfiles') }}='git --git-dir={{ dotfiles_home_path }}/dotfiles --work-tree={{ dotfiles_home_path }}'\" to ~/.bashrc"
   blockinfile:
-    path: "{{ bashrc_path }}"
+    path: "{{ dotfiles_bashrc_file_path }}"
     insertbefore: "BOF"
-    block: alias {{ dotfiles_cmd_alias_name | default('dotfiles') }}='{{ git_binary_path }} --git-dir="{{ dotfiles_folder_path }}" --work-tree="{{ git_work_tree_path }}"'
-
-- name: "Sourcing {{ file_to_source }} file"
-  shell: |
-    . "{{ file_to_source }}"
+    block: alias {{ dotfiles_alias | default('dotfiles') }}='git --git-dir="{{ dotfiles_git_repo_path }}" --work-tree="{{ dotfiles_home_path }}"'
