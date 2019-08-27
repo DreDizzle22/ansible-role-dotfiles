@@ -3,11 +3,8 @@
 # Defaults for dotfiles
 ## ------------------------------
 
-home_path: "{{ lookup('env', 'HOME') }}"
-dotfiles_folder_path: "{{ home_path }}/dotfiles"
-dotfiles_git_repo: ""
-bashrc_path: "~/.bashrc"
-dotfiles_cmd_alias_name: "dotfiles"
-git_binary_path: "/usr/bin/git"
-git_work_tree_path: "{{ home_path }}"
-file_to_source: "~/.bashrc"
+dotfiles_home_path: "{{ lookup('env', 'HOME') }}"
+dotfiles_git_repo_path: "{{ dotfiles_home_path }}/dotfiles"
+dotfiles_git_repo_url: ""
+dotfiles_bashrc_file_path: "{{ dotfiles_home_path }}/.bashrc"
+dotfiles_alias: "dot"
